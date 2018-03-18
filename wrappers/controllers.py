@@ -7,6 +7,7 @@ from mujoco_py import load_model_from_path, MjSim
 from mujoco_py import finctions as mj_functions
 
 from arm_gym.wrappers.controllers.utils import ArmImpController, GripperPDController
+from arm_gym.utils import rotations
 
 class ControllerWrapper():
     def __init__(self, env):

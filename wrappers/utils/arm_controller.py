@@ -1,7 +1,7 @@
 import numpy as np
 from mujoco_py import functions as mj_functions
 
-from arm_sim.utils import kinematics
+from arm_sim.utils import rotations
 
 class ArmImpController:
     def __init__(self, dt, n_joints, end_effector_name, theta_neutral=None):
@@ -50,13 +50,13 @@ class ArmImpController:
         p, r = self._forward_kinematics(dynsim, self.end_effector_name)
 
         p_e = p_d - p
-        r_e = quatdiff(r_d, r)
+        r_e = rotations.quatdiff(r_d, r)
 
         x_e = np.concatenate([p_e, r_e])
 
         # Compute desired acceleration
         dp_d = (p_d - self.p_d_prev) / self.dt
-        dr_d = quatdiff(r_d, self.r_d_prev) / self.dt
+        dr_d = rotations.quatdiff(r_d, self.r_d_prev) / self.dt
         dx_d = np.concatenate([dp_d, dr_d])
         ddx_d = (dx_d - self.dx_d_prev) / self.dt
 
@@ -82,7 +82,7 @@ class ArmImpController:
         J = self._get_jacobian(dynsim, self.end_effector_name)
 
         # Compute pose error (including null space error)
-        theta_e_end = np.dot(np.linalg.pinv(J), x_e)
+        theta_e_end = np.linalg.pinv(J) @ x_e
         theta_e_null = self._null_error(dynsim, J)
         theta_e = theta_e_end + theta_e_null
 
@@ -97,7 +97,7 @@ class ArmImpController:
         ddtheta_pd = self.Kp_theta @ theta_e + self.Kd_theta @ dtheta_e
 
         # Inverse dynamics
-        ddtheta_d = np.dot(np.linalg.pinv(env.J), ddx_d)
+        ddtheta_d = np.linalg.pinv(env.J) @ ddx_d
         tau_p = self._inv_dynamics(dynsim, ddtheta_d + ddtheta_pd)
 
         # Update memory
@@ -111,7 +111,7 @@ class ArmImpController:
         """
         # Compute error from current pose to neutral pose
         theta = dynsim.get_state().qpos[0:self.n_joints]
-        theta_e = kinematics.angdiff(self.theta_neutral - theta)
+        theta_e = rotations.angdiff(self.theta_neutral - theta)
 
         # Project error to null space
         null_projection = np.eye(7) - (np.linalg.pinv(J) @ J)
