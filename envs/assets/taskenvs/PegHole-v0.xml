@@ -1,0 +1,60 @@
+<mujoco model='sawyer'>
+    <compiler angle='radian' coordinate='local' />
+	<option collision='all' impratio='5' cone='elliptic' timestep='0.001' gravity='0 0 -9.8' viscosity='0' iterations='20' />
+    <size njmax='1500' nconmax='300' />
+
+	<!--  ================= Visual Elements ================= /-->
+	<asset>
+		<material name='MatGnd' specular='.3' shininess='.3' reflectance='0.3' rgba='.5 .55 .5 1'/>
+	</asset>
+
+	<!--  ================= Physical Properties ================= /-->
+	<default>
+		<geom solref='0.01 1' solimp='0.95 0.95 0.01' condim='4'/>
+        
+		<default class='table'>
+			<geom material='MatGnd' rgba='.6 .6 .5 1' solref='0.01 1' solimp='0.95 0.98 0.001' contype='1' condim='1' conaffinity='1' />
+		</default>
+
+		<default class='obstacle'>
+			<geom material='MatGnd' rgba='.7 .4 .2 1' solref='0.01 1' solimp='0.95 0.98 0.001' contype='1' condim='1' conaffinity='1' />
+		</default>
+
+		<default class='object'>
+			<geom rgba='0.4 0.5 0.9 1' solmix='0' density='400'/>
+		</default>
+	</default>
+
+
+	<!--  ================= Kinematic Tree ================= /-->
+    <worldbody>
+		<light directional='true' cutoff='40' exponent='10' diffuse='.4 .4 .4' specular='.7 .7 .7' pos='0.9 0 1.5' dir='0 0 -1'/>
+
+		<!--  ================= Object ================= /-->
+		<body name='object' pos='0.6 -0.2 0.15' quat='1 0 0 0'>
+			<geom type='cylinder' name='geom_peg' size='0.014' fromto='0 0 0 0 0 0.1' class='object' />
+			<joint type='free' limited='false' damping='0' armature='0' user='010'/>
+		</body>
+
+		<!--  ================= Table ================= /-->
+		<geom name='tableTop' material='MatGnd' type='plane' pos='0.6 0 0' size='0.4 0.6 0.5' class='table'/>
+		<body name='hole0' pos='0.6 -0.2 0' quat='1 0 0 0'>
+			<geom type='box' class='hole' size='0.0425 0.0575 0.025' pos='0.0575 -0.0425 0.025'/>
+			<geom type='box' class='hole' size='0.0575 0.0425 0.025' pos='0.0425 0.0575 0.025'/>
+			<geom type='box' class='hole' size='0.0425 0.0575 0.025' pos='-0.0575 0.0425 0.025'/>
+			<geom type='box' class='hole' size='0.0575 0.0425 0.025' pos='-0.0425 -0.0575 0.025'/>
+		</body>
+		<body name='hole1' pos='0.6 0.2 0' quat='1 0 0 0'>
+			<geom type='box' class='hole' size='0.0425 0.0575 0.025' pos='0.0575 -0.0425 0.025'/>
+			<geom type='box' class='hole' size='0.0575 0.0425 0.025' pos='0.0425 0.0575 0.025'/>
+			<geom type='box' class='hole' size='0.0425 0.0575 0.025' pos='-0.0575 0.0425 0.025'/>
+			<geom type='box' class='hole' size='0.0575 0.0425 0.025' pos='-0.0425 -0.0575 0.025'/>
+		</body>
+    </worldbody>
+
+	<!--  ================= Sensors ================= /-->
+	<sensor>
+		<framepos name='obj_p' body='object' />
+		<framequat name='obj_r' body='object' />
+	</sensor>
+</mujoco>

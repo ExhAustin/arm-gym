@@ -35,7 +35,7 @@ class SawyerImpControllerWrapper(ControllerWrapper):
             0.00221484375, -1.1789130859375, -0.003966796875, 2.1766865234375,
             -0.0081728515625, 0.57493359375, 3.308595703125
             ])
-        self.end_effector_name = "effector_origin"
+        self.end_effector_name = "gripper_origin"
 
         # Sawyer high-level controller parameters
         self.dt = 0.005
