@@ -1,26 +1,42 @@
 import numpy as np
 
 from mujoco_py import load_model_from_path, MjSim, MjViewer
-from mujoco_py import functions as mj_functions
 
 class ArmTaskEnv:
+    """
+    States:
+        sensors
+    Actions:
+        actuators
+    """
     def __init__(self, model_file):
-        pass
+        # Load model to MuJoCo
+        self.mj_model = load_model_from_path(model_file)
+        self.sim = MjSim(self.model)
+
+        # Rendering
+        self.viewer = None
 
     def reset(self):
-        pass
+        self.sim.reset()
 
     def step(self, action):
-        pass
+        # Assign action to actuators
+        self.sim.data.ctrl = action.copy()
 
-    def save_xml(self, filename):
-        pass
+        # Simulate step
+        self.sim.step()
 
-    def load_xml(self, filename):
-        pass
+        # Get next state
+        next_state = self.sim.data.sensordata.copy()
 
-    def save_state(self):
-        pass
+        return next_state
 
-    def load_state(self, state):
-        pass
+    def render(self):
+        if self.viewer is None:
+            self.viewer = MjViewer(self.sim)
+        self.viewer.render()
+
+    @property
+    def time(self):
+        return self.sim.get_state().time

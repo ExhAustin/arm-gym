@@ -36,6 +36,6 @@ def make(arm_name, task_name, shift=None):
     list2file(armtask_lines, out_file)
 
     # Create arm environment from xml file
-    env = ArmTaskEnv(out_file, options)
+    env = ArmTaskEnv(out_file, arm_file)
 
     return env
