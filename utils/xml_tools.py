@@ -18,9 +18,22 @@ def list2file(line_ls, filename):
 
     return line_count
 
-def shift_xml(line_ls, p=np.zeros(3), r=np.array([1.,0.,0.,0.])):
+def shift_body(line_ls, body_name="shift", p=np.zeros(3), r=np.array([1.,0.,0.,0.])):
     """
-    Shifts the frame of worldbody in xml file
+    Shifts the frame of a body in an xml file
+    """
+    # Generate strings
+    pos_str = "{} {} {}".format(str(p[0]), str(p[1]), str(p[2]))
+    rot_str = "{} {} {} {}".format(str(r[0]), str(r[1]), str(r[2]), str(r[3]))
+
+    # Find body and edit frame
+    for i in range(len(line_ls)):
+        if (body_name in line_ls[i]) and ("<body" in line_ls[i]):
+            tmp_str = line_ls[i].strip(">")
+            line_ls[i] = tmp_str + " pos='{}' quat='{}'>".format(pos_str, rot_str)
+
+    return line_ls
+
     """
     # Find worldbody
     for i in range(len(line_ls)):
@@ -29,14 +42,14 @@ def shift_xml(line_ls, p=np.zeros(3), r=np.array([1.,0.,0.,0.])):
             break
 
     for j in range(start+1, len(line_ls)):
-        if "/worldbody" in line_ls[i]:
+        if "/worldbody" in line_ls[j]:
             end = j
             break
 
     # Create shifted body
     pos_str = str(p[0]) + " " + str(p[1]) + " " + str(p[2])
     rot_str = str(r[0]) + " " + str(r[1]) + " " + str(r[2]) + " " + str(r[3])
-    header = "\t\t<body pos='{}' quat='{}'>".format(pos_str, rot_str)
+    header = "\t\t<body name='shift_frame' pos='{}' quat='{}'>".format(pos_str, rot_str)
     footer = "\t\t</body>"
 
     # Add new body and indent middle section
@@ -47,26 +60,32 @@ def shift_xml(line_ls, p=np.zeros(3), r=np.array([1.,0.,0.,0.])):
     for i in range(len(mid_sect)):
         mid_sect[i] = "\t" + mid_sect[i]
 
-    merged_ls = prev_sect + header + mid_sect + footer + post_sect
+    merged_ls = prev_sect + [header] + mid_sect + [footer] + post_sect
 
     return merged_ls 
+    """
 
 def merge_xmls(file1_lines, file2_lines):
     """ 
     Merge two XML files
     """
-    # Remove redundant parts of file2 TODO
-    redundant_sections = ['compiler', 'option', 'size']
+    # Remove redundant parts of file2
+    redundant_sections = ['<compiler', '<option', '<size']
     i = 0
-    while len(task_lines) > i:
+    while True:
         for s in redundant_sections:
-            if s in task_lines[i]:
-                while ("/" + s) not in line:
-                    task_lines.pop(i)
+            if s in file2_lines[i]:
+                if "/>" in file2_lines[i]:
+                    file2_lines.pop(i)
+                else:
+                    while ("/" + s) not in file2_lines[i]:
+                        file2_lines.pop(i)
         i += 1
+        if len(file2_lines) <= i:
+            break
 
     # Add sections of file2 to file1
-    file1_footer = file1_lines.pop(-1)
+    file1_footer = [file1_lines.pop(-1)]
     file2_lines.pop(0)
     file2_lines.pop(-1)
 

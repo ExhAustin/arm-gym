@@ -1,7 +1,9 @@
 import numpy as np
+from pyquaternion import Quaternion
+
 from mujoco_py import functions as mj_functions
 
-from arm_sim.utils import rotations
+from arm_gym.utils import rotations
 
 class ArmImpController:
     def __init__(self, dt, n_joints, end_effector_name, theta_neutral=None):
@@ -14,8 +16,8 @@ class ArmImpController:
             self.theta_neutral = theta_neutral
 
         # Position controller gain matrices
-        self.Kp_theta = 1000*np.eye(self.n_joints)
-        self.Kd_theta = 350*np.eye(self.n_joints)
+        self.Kp_theta = 100*np.eye(self.n_joints)
+        self.Kd_theta = 50*np.eye(self.n_joints)
         #self.Kp_x = 10*np.diag([1,1,1,10,10,10])
         #self.Kd_x = 3.5*np.diag([1,1,1,10,10,10])
 
@@ -36,7 +38,7 @@ class ArmImpController:
         self.prev_theta_e = None
         self.if_e = np.zeros(6)
 
-    def step(self, dynsim, p_d, r_d):
+    def step(self, dynsim, p, r, p_d, r_d):
         """
         Controller step
         """
@@ -47,8 +49,6 @@ class ArmImpController:
             self.r_d_prev = r_d
 
         # Compute position error
-        p, r = self._forward_kinematics(dynsim, self.end_effector_name)
-
         p_e = p_d - p
         r_e = rotations.quatdiff(r_d, r)
 
@@ -61,7 +61,7 @@ class ArmImpController:
         ddx_d = (dx_d - self.dx_d_prev) / self.dt
 
         # Let fancy low-level controller handle the rest
-        tau_output = self.position_controller(dynsim, x_e, ddx_d)
+        tau_output = self._position_controller(dynsim, x_e, ddx_d)
 
         # Update memory
         self.p_d_prev = p_d
@@ -97,7 +97,7 @@ class ArmImpController:
         ddtheta_pd = self.Kp_theta @ theta_e + self.Kd_theta @ dtheta_e
 
         # Inverse dynamics
-        ddtheta_d = np.linalg.pinv(env.J) @ ddx_d
+        ddtheta_d = np.linalg.pinv(J) @ ddx_d
         tau_p = self._inv_dynamics(dynsim, ddtheta_d + ddtheta_pd)
 
         # Update memory
@@ -139,21 +139,6 @@ class ArmImpController:
         """
 
         return tau_invdyn
-
-    def _forward_kinematics(self, dynsim, body_name):
-        """
-        Uses dynamic model to calculate forward kinematics
-
-        Args:
-            body_name - name of body in MuJoCo model
-        Returns:
-            p - position of body in world frame (ndarray)
-            r - orientation of body in world frame (Quaternion)
-        """
-        p = dynsim.data.get_body_xpos(body_name)
-        r = Quaternion(matrix=dynsim.data.get_body_xmat(body_name))
-
-        return p, r
 
     def _get_jacobian(self, dynsim, body_name):
         J = np.zeros([6, self.n_joints])

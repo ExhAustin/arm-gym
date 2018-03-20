@@ -1,7 +1,7 @@
 import numpy as np
 
 # Gripper controller
-class GripperController:
+class GripperPDController:
     def __init__(self, dt, n_joints, max_dist):
         self.dt = dt
         self.n_joints = n_joints

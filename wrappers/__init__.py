@@ -1,1 +1,1 @@
-from arm_gym.wrappers.controllers import SawyerImpControllerWrapper
+from arm_gym.wrappers.controllers import SawyerImpController

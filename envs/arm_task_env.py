@@ -11,8 +11,13 @@ class ArmTaskEnv:
     """
     def __init__(self, model_file):
         # Load model to MuJoCo
+        self.model_file = model_file
         self.mj_model = load_model_from_path(model_file)
-        self.sim = MjSim(self.model)
+        self.sim = MjSim(self.mj_model)
+
+        # Parse state and action spaces
+        self.state_dim = len(self.sim.data.sensordata)
+        self.action_dim = len(self.sim.data.ctrl)
 
         # Rendering
         self.viewer = None
@@ -22,7 +27,7 @@ class ArmTaskEnv:
 
     def step(self, action):
         # Assign action to actuators
-        self.sim.data.ctrl = action.copy()
+        self.sim.data.ctrl[:] = action.copy()
 
         # Simulate step
         self.sim.step()
