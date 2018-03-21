@@ -2,16 +2,14 @@ import numpy as np
 
 # Gripper controller
 class GripperPDController:
-    def __init__(self, dt, n_joints, max_dist):
+    def __init__(self, dt, n_joints, p_max):
         self.dt = dt
         self.n_joints = n_joints
-        self.max_pg = max_dist/2.0
+        self.p_max = p_max
 
         # Controller gains
         self.Kp = 400
-        self.Kd = 2
-        #self.Kp = 25
-        #self.Kd = 0.1
+        self.Kd = 5
 
         # Initialize memory by reset
         self.reset()
@@ -19,10 +17,9 @@ class GripperPDController:
     def reset(self):
         self.prev_pg_e = None
 
-    def step(self, dynsim, pg_d):
+    def step(self, pg, pg_d):
         # Get error
-        pg_d = np.clip(pg_d, 0, self.max_pg)
-        pg = dynsim.get_state().qpos[self.n_joints]
+        pg_d = np.clip(pg_d, 0, self.p_max)
         pg_e = pg_d - pg
 
         # Derivative

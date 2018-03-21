@@ -7,7 +7,7 @@ from mujoco_py import load_model_from_path, MjSim, MjViewer
 from arm_gym.utils.xml_tools import file2list, list2file, shift_body, merge_xmls
 from arm_gym.envs.arm_task_env import ArmTaskEnv
 
-def make(arm_name, task_name, p_shift=None, r_shift=None):
+def make(arm_name, task_name, filename="merged_tmp", p_shift=None, r_shift=None):
     print("Generating XML model file...")
     print("\tArm:", arm_name)
     print("\tTask:", task_name)
@@ -15,16 +15,16 @@ def make(arm_name, task_name, p_shift=None, r_shift=None):
 
     # Define and locate files directories
     curr_dir = os.path.dirname(__file__) + "/"
-    arm_file = curr_dir + "assets/arms/" + arm_name + ".xml"
-    task_file = curr_dir + "assets/taskenvs/" + task_name + ".xml"
-    out_file = curr_dir + "tmp/" + "merged_tmp.xml"
+    arm_file = curr_dir + "xmls/arms/" + arm_name + ".xml"
+    task_file = curr_dir + "xmls/taskenvs/" + task_name + ".xml"
+    out_file = curr_dir + "xmls/generated/" + filename + ".xml"
 
     # Load xml files
     arm_lines = file2list(arm_file)
     task_lines = file2list(task_file)
 
     # Reallocate mesh directories
-    new_mesh_dir = "'../assets/arms/'"
+    new_mesh_dir = "'../arms/'"
     for i in range(len(arm_lines)):
         if "compiler" in arm_lines[i]:
             tmp_str = arm_lines[i].strip("/>")

@@ -30,7 +30,7 @@ class SawyerImpController(Controller):
 
         # Sawyer parameters
         self.n_joints = 7
-        self.gripper_max_dist = 0.04
+        self.pg_max = 0.02
         self.n_touch = 20
         self.theta_neutral = np.array([
             0.00221484375, -1.1789130859375, -0.003966796875, 2.1766865234375,
@@ -44,7 +44,7 @@ class SawyerImpController(Controller):
 
         # Dynamic model
         curr_dir = os.path.dirname(__file__) + "/"
-        arm_file = curr_dir + "../envs/assets/arms/"\
+        arm_file = curr_dir + "../envs/xmls/arms/"\
                 + arm_name + ".xml"
 
         self.mj_dynmodel = load_model_from_path(arm_file)
@@ -59,7 +59,7 @@ class SawyerImpController(Controller):
         self.gripper_controller = GripperPDController(
                 dt=self.dt,
                 n_joints=self.n_joints,
-                max_dist=self.gripper_max_dist)
+                p_max=self.pg_max)
 
         # Initial state in neutral position
         theta0 = self.theta_neutral
@@ -81,8 +81,12 @@ class SawyerImpController(Controller):
         self.arm_controller.reset()
         self.gripper_controller.reset()
 
+        # Reset rendering
+        self.rendering = False
+
         # Take a step to get derivative states
-        return self._simulation_step()
+        self.state = self._simulation_step()
+        return self.state
 
     def step(self, action=None):
         """
@@ -92,13 +96,15 @@ class SawyerImpController(Controller):
             new observation - [p, r, sensordata] (ndarray)
         """
         # Extract current states
-        p, r = self._forward_kinematics(self.end_effector_name)
+        p = self.state[0:3]
+        r = Quaternion(array=self.state[3:7])
+        pg = self.state[7+self.n_joints]
 
         # Extract desired states from input action
         if action is None:
             p_d = p
             r_d = r
-            pg_d = self.gripper_max_dist
+            pg_d = self.pg_max
         else:
             p_d = action[0:3]
             r_d = Quaternion(array=action[3:7])
@@ -106,11 +112,19 @@ class SawyerImpController(Controller):
 
         # Compute control signals
         tau_joints = self.arm_controller.step(self.dynsim, p, r, p_d, r_d)
-        f_gripper = self.gripper_controller.step(self.dynsim, pg_d)
+        f_gripper = self.gripper_controller.step(pg, pg_d)
         ctrl_vec = np.concatenate([tau_joints, np.array([f_gripper])])
 
         # Advance simulation
-        return self._simulation_step(ctrl_vec)
+        self.state = self._simulation_step(ctrl_vec)
+        return self.state
+
+    def render(self):
+        """
+        Continuous rendering by using this function to enable render
+        """
+        self.rendering = True
+        self.env.render()
 
     def save_xml(self, filename):
         """
@@ -123,12 +137,16 @@ class SawyerImpController(Controller):
         shutil.copyfile(self.env.model_file, filename)
 
     def save_state(self):
+        """
+        Saves env state
+            (Accesses get_state through env.sim)
+        """
         return self.env.sim.get_state()
 
     def load_state(self, state):
         """
-        Advance simulation for 1 controller timestep
-            (Accesses time through env.sim)
+        Loads env state
+            (Accesses set_state through env.sim)
         """
         self.env.sim.set_state(state)
         mj_functions.mj_fwdPosition(self.env.sim.model, self.env.sim.data)
@@ -158,6 +176,10 @@ class SawyerImpController(Controller):
         self.t += self.dt
         while(abs(self.env.sim.data.time - self.t) > self.t_epsilon):
             env_observation = self.env.step(ctrl)
+            if self.rendering:
+                self.env.render()
+
+        self.rendering = False
 
         # Sync dynamic model
         self._sync_dynmodel()

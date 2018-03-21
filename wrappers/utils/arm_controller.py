@@ -16,8 +16,8 @@ class ArmImpController:
             self.theta_neutral = theta_neutral
 
         # Position controller gain matrices
-        self.Kp_theta = 100*np.eye(self.n_joints)
-        self.Kd_theta = 50*np.eye(self.n_joints)
+        self.Kp_theta = 1000*np.eye(self.n_joints)
+        self.Kd_theta = 350*np.eye(self.n_joints)
         #self.Kp_x = 10*np.diag([1,1,1,10,10,10])
         #self.Kd_x = 3.5*np.diag([1,1,1,10,10,10])
 
@@ -144,7 +144,7 @@ class ArmImpController:
         J = np.zeros([6, self.n_joints])
 
         Jp = dynsim.data.get_body_jacp(body_name)
-        Jr = dynsim.data.get_body_jacp(body_name)
+        Jr = dynsim.data.get_body_jacr(body_name)
 
         J[0:3,:] = Jp.reshape([3,-1])[:,0:self.n_joints]
         J[3:6,:] = Jr.reshape([3,-1])[:,0:self.n_joints]
