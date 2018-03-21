@@ -7,7 +7,15 @@ from mujoco_py import load_model_from_path, MjSim, MjViewer
 from arm_gym.utils.xml_tools import file2list, list2file, shift_body, merge_xmls
 from arm_gym.envs.arm_task_env import ArmTaskEnv
 
-def make(arm_name, task_name, filename="merged_tmp", p_shift=None, r_shift=None):
+def make(arm_name=None, task_name=None, filename="merged_tmp", 
+        p_shift=None, r_shift=None,
+        xml=None):
+    if xml is not None:
+        print("Creating env object from xml...")
+        env = ArmTaskEnv(xml)
+        print("Environment created.")
+        return env
+
     print("Generating XML model file...")
     print("\tArm:", arm_name)
     print("\tTask:", task_name)

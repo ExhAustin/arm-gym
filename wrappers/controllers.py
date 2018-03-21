@@ -70,19 +70,20 @@ class SawyerImpController(Controller):
         self.reset()
 
     def reset(self):
-        # Reset env
+        # Env
         self.env.reset()
         self.load_state(self.state0)
 
-        # Reset env states
+        # Time
         self.t = 0
 
-        # Reset controller modules
+        # Controller modules
         self.arm_controller.reset()
         self.gripper_controller.reset()
 
-        # Reset rendering
+        # Rendering and trace
         self.rendering = False
+        self.trace = []
 
         # Take a step to get derivative states
         self.state = self._simulation_step()
@@ -152,6 +153,9 @@ class SawyerImpController(Controller):
         mj_functions.mj_fwdPosition(self.env.sim.model, self.env.sim.data)
         self._sync_dynmodel()
 
+    def save_trace(self, save_path):
+        pickle.dump(self.trace, open(save_path, 'wb'))
+
     def _get_observation(self, observation):
         """
         Extracts state vector from the environment observation
@@ -176,6 +180,11 @@ class SawyerImpController(Controller):
         self.t += self.dt
         while(abs(self.env.sim.data.time - self.t) > self.t_epsilon):
             env_observation = self.env.step(ctrl)
+
+            # Record trace
+            self.trace.append(ctrl)
+
+            # Render
             if self.rendering:
                 self.env.render()
 
