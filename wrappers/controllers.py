@@ -83,11 +83,16 @@ class SawyerImpController(Controller):
 
         # Rendering and trace
         self.rendering = False
-        self.trace = []
+        self.trace = {
+                'env_observations': [], 
+                'env_actions': [],
+                'observations': [],
+                'actions': []}
 
         # Take a step to get derivative states
-        self.state = self._simulation_step()
-        return self.state
+        self.observation = self._simulation_step()
+        self.trace['observations'].append(self.observation)
+        return self.observation
 
     def step(self, action=None):
         """
@@ -97,11 +102,12 @@ class SawyerImpController(Controller):
             new observation - [p, r, sensordata] (ndarray)
         """
         # Extract current states
-        p = self.state[0:3]
-        r = Quaternion(array=self.state[3:7])
-        pg = self.state[7+self.n_joints]
+        p = self.observation[0:3]
+        r = Quaternion(array=self.observation[3:7])
+        pg = self.observation[7+self.n_joints]
 
         # Extract desired states from input action
+        self.trace['actions'].append(action)
         if action is None:
             p_d = p
             r_d = r
@@ -117,8 +123,9 @@ class SawyerImpController(Controller):
         ctrl_vec = np.concatenate([tau_joints, np.array([f_gripper])])
 
         # Advance simulation
-        self.state = self._simulation_step(ctrl_vec)
-        return self.state
+        self.observation = self._simulation_step(ctrl_vec)
+        self.trace['observations'].append(self.observation)
+        return self.observation
 
     def render(self):
         """
@@ -182,7 +189,8 @@ class SawyerImpController(Controller):
             env_observation = self.env.step(ctrl)
 
             # Record trace
-            self.trace.append(ctrl)
+            self.trace['env_observations'].append(env_observation)
+            self.trace['env_actions'].append(ctrl)
 
             # Render
             if self.rendering:
