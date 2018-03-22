@@ -134,16 +134,6 @@ class SawyerImpController(Controller):
         self.rendering = True
         self.env.render()
 
-    def save_xml(self, filename):
-        """
-        Saves model of env to xml file
-            (Accesses model_file through env.sim)
-        """
-        if ".xml" not in filename:
-            filename = filename + ".xml"
-
-        shutil.copyfile(self.env.model_file, filename)
-
     def save_state(self):
         """
         Saves env state
@@ -160,8 +150,21 @@ class SawyerImpController(Controller):
         mj_functions.mj_fwdPosition(self.env.sim.model, self.env.sim.data)
         self._sync_dynmodel()
 
-    def save_trace(self, save_path):
-        pickle.dump(self.trace, open(save_path, 'wb'))
+    def save_xml(self, filename):
+        """
+        Saves model of env to xml file
+            (Accesses model_file through env.sim)
+        """
+        if ".xml" not in filename:
+            filename = filename + ".xml"
+
+        shutil.copyfile(self.env.model_file, filename)
+
+    def save_trace(self, save_path=None):
+        if save_path is not None:
+            pickle.dump(self.trace, open(save_path, 'wb'))
+        else:
+            return self.trace
 
     def _get_observation(self, observation):
         """
