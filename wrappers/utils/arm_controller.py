@@ -22,8 +22,8 @@ class ArmImpController:
         #self.Kd_x = 3.5*np.diag([1,1,1,10,10,10])
 
         # Limits & decays
-        self.p_e_max = 0.05
-        self.r_e_max = 0.3
+        self.fp_max = 30
+        self.fr_max = 0.1*self.fp_max
 
         # Initialize by reset
         self.reset()
@@ -74,10 +74,6 @@ class ArmImpController:
         """
         Position controller
         """
-        # Clip errors to ensure stability
-        x_e[0:3] = vec_softclip(x_e[0:3], self.p_e_max)
-        x_e[3:6] = vec_softclip(x_e[3:6], self.r_e_max)
-
         # Compute Jacobian
         J = self._get_jacobian(dynsim, self.end_effector_name)
 
@@ -98,12 +94,20 @@ class ArmImpController:
 
         # Inverse dynamics
         ddtheta_d = np.linalg.pinv(J) @ ddx_d
-        tau_p = self._inv_dynamics(dynsim, ddtheta_d + ddtheta_pd)
+        tau = self._inv_dynamics(dynsim, ddtheta_d + ddtheta_pd)
 
         # Update memory
         self.prev_theta_e = theta_e
 
-        return tau_p
+        # Clip forces to ensure stability and safety
+        """
+        f = np.linalg.pinv(J.T) @ tau
+        f[0:3] = vec_softclip(f[0:3], self.fp_max)
+        f[3:6] = vec_softclip(f[3:6], self.fr_max)
+        tau_clipped = J.T @ f
+        """
+
+        return tau
 
     def _null_error(self, dynsim, J):
         """
