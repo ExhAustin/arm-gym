@@ -34,10 +34,12 @@ class ArmImpController:
         """
         self.p_d_prev = None
         self.r_d_prev = None
+        self.dx_d_prev = np.zeros(6)
+
+        self.theta_e_prev = None
+
         self.x_e_prev = None
         self.J_prev = None
-        self.dx_d_prev = np.zeros(6)
-        self.theta_e_prev = None
         self.theta_e_end_prev = None
         self.theta_e_null_prev = None
 
