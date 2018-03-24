@@ -18,11 +18,11 @@ class ArmImpController:
         # Position controller gain matrices
         self.Kp_theta = 1000*np.eye(self.n_joints)
         self.Kd_theta = 350*np.eye(self.n_joints)
-        #self.Kp_x = 10*np.diag([1,1,1,10,10,10])
-        #self.Kd_x = 3.5*np.diag([1,1,1,10,10,10])
+        self.Kp_x = 10*np.diag([0.1,0.1,0.1,1,1,1])
+        self.Kd_x = 3.5*np.diag([0.1,0.1,0.1,1,1,1])
 
         # Limits & decays
-        self.fp_max = 30
+        self.fp_max = 10
         self.fr_max = 0.1*self.fp_max
 
         # Initialize by reset
@@ -34,9 +34,13 @@ class ArmImpController:
         """
         self.p_d_prev = None
         self.r_d_prev = None
+        self.x_e_prev = None
+        self.J_prev = None
         self.dx_d_prev = np.zeros(6)
-        self.prev_theta_e = None
-        self.if_e = np.zeros(6)
+        self.theta_e_prev = None
+        self.theta_e_end_prev = None
+        self.theta_e_null_prev = None
+
 
     def step(self, dynsim, p, r, p_d, r_d):
         """
@@ -82,14 +86,12 @@ class ArmImpController:
         theta_e_null = self._null_error(dynsim, J)
         theta_e = theta_e_end + theta_e_null
 
-        # Get position error derivative
-        if self.prev_theta_e is None:
-            self.prev_theta_e = theta_e
-        dtheta_e = (theta_e - self.prev_theta_e)/self.dt
+        # Get pose error derivative
+        if self.theta_e_prev is None:
+            self.theta_e_prev = theta_e
+        dtheta_e = (theta_e - self.theta_e_prev)/self.dt
 
         # PD acceleration term
-        #self.Kp_theta = env.J.T @ self.Kp_x @ env.J
-        #self.Kd_theta = env.J.T @ self.Kd_x @ env.J
         ddtheta_pd = self.Kp_theta @ theta_e + self.Kd_theta @ dtheta_e
 
         # Inverse dynamics
@@ -97,7 +99,52 @@ class ArmImpController:
         tau = self._inv_dynamics(dynsim, ddtheta_d + ddtheta_pd)
 
         # Update memory
-        self.prev_theta_e = theta_e
+        self.theta_e_prev = theta_e
+
+        """
+        # Compute Jacobian
+        J = self._get_jacobian(dynsim, self.end_effector_name)
+
+        if self.J_prev is None:
+            self.J_prev = J
+        dJ = (J - self.J_prev) / self.dt
+
+        # Compute pose errors
+        theta_e_end = np.linalg.pinv(J) @ x_e
+        theta_e_null = self._null_error(dynsim, J)
+
+        # Get pose error derivatives
+        if self.theta_e_end_prev is None:
+            self.theta_e_end_prev = theta_e_end
+        dtheta_e_end = (theta_e_end - self.theta_e_end_prev)/self.dt
+        if self.theta_e_null_prev is None:
+            self.theta_e_null_prev = theta_e_null
+        dtheta_e_null = (theta_e_null - self.theta_e_null_prev)/self.dt
+
+        # Null desired joint acceleration
+        ddtheta_null_d = self.Kp_theta @ theta_e_null +\
+                self.Kd_theta @ dtheta_e_null
+
+        # State error derivative
+        if self.x_e_prev is None:
+            self.x_e_prev = x_e
+        dx_e = (x_e - self.x_e_prev) / self.dt
+        
+        # Get desired Cartesian force
+        qM = self._get_qM(dynsim,J)
+        xM = np.linalg.pinv(J @ qM @ J.T)
+        F_d = xM @ ddx_d + self.Kd_x @ dx_e + self.Kp_x @ x_e - xM @ dJ @ dtheta_e_end
+
+        # Inverse dynamics
+        ddq_d = np.linalg.pinv(qM) @ (J.T @ F_d) + ddtheta_null_d
+        tau = self._inv_dynamics(dynsim, ddq_d)
+
+        # Update memory
+        self.J_prev = J
+        self.x_e_prev = x_e
+        self.theta_e_end_prev = theta_e_end
+        self.theta_e_null_prev = theta_e_null
+        """
 
         # Clip forces to ensure stability and safety
         """
@@ -154,6 +201,14 @@ class ArmImpController:
         J[3:6,:] = Jr.reshape([3,-1])[:,0:self.n_joints]
 
         return J
+
+    def _get_qM(self, dynsim, J):
+        """
+        Joint mass matrix for current pose
+        """
+        qM = np.zeros(self.n_joints * self.n_joints)
+        mj_functions.mj_fullM(dynsim.model, qM, dynsim.data.qM)
+        return qM.reshape(self.n_joints, self.n_joints)
 
 def vec_softclip(a, a_max, leak=0.1):
     """
