@@ -36,7 +36,7 @@
 		<body name='shift'>
 			<!--  ================= Object ================= /-->
 			<body name='object' pos='0.6 0.015 0.015' quat='1 0 0 0'>
-				<geom type='box' class='object' size='0.01 0.025 0.015' pos='0 0 0'/>
+				<geom type='box' class='obstacle' size='0.01 0.025 0.015' pos='0 0 0'/>
 			</body>
 
 			<!--  ================= Obstacle ================= /-->

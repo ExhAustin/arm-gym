@@ -33,7 +33,7 @@ class SawyerImpController(Controller):
         self.pg_max = 0.02
         self.n_touch = 20
         self.theta_neutral = np.array([
-            0.00221484375, -1.1789130859375, -0.003966796875, 2.1766865234375,
+            -0.35, -1.1789130859375, -0.003966796875, 2.1766865234375,
             -0.0081728515625, 0.57493359375, 3.308595703125
             ])
         self.end_effector_name = "gripper_origin"
@@ -148,6 +148,10 @@ class SawyerImpController(Controller):
         """
         self.env.sim.set_state(state)
         mj_functions.mj_fwdPosition(self.env.sim.model, self.env.sim.data)
+        mj_functions.mj_fwdVelocity(self.env.sim.model, self.env.sim.data)
+        mj_functions.mj_fwdAcceleration(self.env.sim.model, self.env.sim.data)
+        mj_functions.mj_fwdActuation(self.env.sim.model, self.env.sim.data)
+        mj_functions.mj_fwdConstraint(self.env.sim.model, self.env.sim.data)
         self._sync_dynmodel()
 
     def save_xml(self, filename):
