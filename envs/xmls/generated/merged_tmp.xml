@@ -1,6 +1,6 @@
 <mujoco model='sawyer'>
 	<compiler angle='radian' coordinate='local'  meshdir='../arms/'/>
-	<option collision='all' impratio='5' cone='elliptic' timestep='0.001' gravity='0 0 -9.8' viscosity='0' iterations='20' />
+	<option collision='all' impratio='1' cone='elliptic' timestep='0.001' gravity='0 0 -9.8' viscosity='0' iterations='20' />
 	<!--
     <size njmax='600' nconmax='150' />
 	-->
@@ -366,16 +366,12 @@
 		<body name='shift' pos='0.0 0.0 0.0' quat='1.0 0.0 0.0 0.0'>
 			<!--  ================= Object ================= /-->
 			<body name='object' pos='0.6 0 0.015' quat='1 0 0 0'>
+				<geom type='box' class='obstacle' size='0.01 0.0075 0.015' pos='0 0 0'/>
 			</body>
 
 			<!--  ================= Obstacle ================= /-->
-			<body name='wall' pos='0.6 0 0.015' quat='1 0 0 0'>
-				<geom type='box' class='obstacle' size='0.05 0.02 0.015' pos='0 0 0'/>
-				<geom type='box' class='obstacle' size='0.02 0.1 0.015' pos='-0.07 0.02 0'/>
-				<geom type='box' class='obstacle' size='0.14 0.02 0.015' pos='0.05 0.14 0'/>
-				<geom type='box' class='obstacle' size='0.14 0.02 0.015' pos='0.05 -0.2 0'/>
-				<geom type='box' class='obstacle' size='0.02 0.15 0.015' pos='0.17 -0.03 0'/>
-				<geom type='box' class='obstacle' size='0.02 0.029 0.015' pos='-0.07 -0.151 0'/>
+			<body name='wall' pos='0.6 0.0175 0.015' quat='1 0 0 0'>
+				<geom type='box' class='obstacle' size='0.1 0.01 0.015' pos='0 0 0'/>
 			</body>
 		</body>
     </worldbody>

@@ -18,11 +18,11 @@ class ArmImpController:
         # Position controller gain matrices
         self.Kp_theta = 500*np.eye(self.n_joints)
         self.Kd_theta = 100*np.eye(self.n_joints)
-        self.Kp_x = 100*np.diag([1,1,1,0.1,0.1,0.1])
-        self.Kd_x = 18*np.diag([1,1,1,0.1,0.1,0.1])
+        self.Kp_x = 1000*np.diag([1,1,1,1,1,1])
+        self.Kd_x = 50*np.diag([1,1,1,1,1,1])
 
         # Limits & decays
-        self.fp_max = 10
+        self.fp_max = 30
         self.fr_max = 0.1*self.fp_max
 
         # Initialize by reset
@@ -80,6 +80,7 @@ class ArmImpController:
         """
         Position controller
         """
+        """
         # Compute Jacobian
         J = self._get_jacobian(dynsim, self.end_effector_name)
 
@@ -114,6 +115,8 @@ class ArmImpController:
         
         # Cartesian impedance
         F_imp = self.Kd_x @ dx_e + self.Kp_x @ x_e
+        F_imp[0:3] = vec_softclip(F_imp[0:3], self.fp_max)
+        F_imp[3:6] = vec_softclip(F_imp[3:6], self.fr_max)
         tau_imp = J.T @ F_imp
 
         # Desired null space joint acceleration
@@ -135,15 +138,8 @@ class ArmImpController:
         # Update memory
         self.x_e_prev = x_e
         self.theta_e_null_prev = theta_e_null
-        """
+        #"""
 
-        # Clip forces to ensure stability and safety
-        """
-        f = np.linalg.pinv(J.T) @ tau
-        f[0:3] = vec_softclip(f[0:3], self.fp_max)
-        f[3:6] = vec_softclip(f[3:6], self.fr_max)
-        tau_clipped = J.T @ f
-        """
 
         return tau
 
@@ -210,7 +206,7 @@ def vec_softclip(a, a_max, leak=0.1):
     if a_len > a_max:
         max_leak = a_max * leak
         clipped_len = a_max +\
-                max_leak * ( 1 - np.exp(-(1/max_leak)*(a_max-a_len)) )
+                max_leak * ( 1 - np.exp((1/max_leak)*(a_max-a_len)) )
         return a * (clipped_len / a_len)
     else:
         return a
