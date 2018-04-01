@@ -1,6 +1,6 @@
 <mujoco model='sawyer'>
 	<compiler angle='radian' coordinate='local' />
-	<option collision='all' impratio='5' cone='elliptic' timestep='0.001' gravity='0 0 -9.8' viscosity='0' iterations='20' />
+	<option collision='all' impratio='1' cone='elliptic' timestep='0.001' gravity='0 0 -9.8' viscosity='0' iterations='20' />
 	<!--
     <size njmax='600' nconmax='150' />
 	-->

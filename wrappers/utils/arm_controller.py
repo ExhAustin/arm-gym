@@ -29,9 +29,7 @@ class ArmImpController:
         self.reset()
 
     def reset(self):
-        """
-        Reset controller states
-        """
+        """ Reset controller states """
         self.p_d_prev = None
         self.r_d_prev = None
         self.dx_d_prev = np.zeros(6)
@@ -45,9 +43,7 @@ class ArmImpController:
 
 
     def step(self, dynsim, p, r, p_d, r_d):
-        """
-        Controller step
-        """
+        """ Controller step """
         # Warmstart
         if self.p_d_prev is None:
             self.p_d_prev = p_d
@@ -77,9 +73,7 @@ class ArmImpController:
         return tau_output
 
     def _position_controller(self, dynsim, x_e, ddx_d):
-        """
-        Position controller
-        """
+        """ Position controller """
         """
         # Compute Jacobian
         J = self._get_jacobian(dynsim, self.end_effector_name)
@@ -103,7 +97,6 @@ class ArmImpController:
 
         # Update memory
         self.theta_e_prev = theta_e
-
         """
         # Compute Jacobian
         J = self._get_jacobian(dynsim, self.end_effector_name)
@@ -144,9 +137,7 @@ class ArmImpController:
         return tau
 
     def _null_error(self, dynsim, J):
-        """
-        Null space motion feedforward term
-        """
+        """ Null space motion feedforward term """
         # Compute error from current pose to neutral pose
         theta = dynsim.get_state().qpos[0:self.n_joints]
         theta_e = rotations.angdiff(self.theta_neutral - theta)
@@ -158,9 +149,7 @@ class ArmImpController:
         return theta_null_e
 
     def _inv_dynamics(self, dynsim, ddtheta_d):
-        """
-        Inverse dynamics feedforward term
-        """
+        """ Inverse dynamics feedforward term """
         # Set desired acceleration
         dynsim.data.qacc[0:self.n_joints] = ddtheta_d
 
@@ -179,6 +168,7 @@ class ArmImpController:
         return tau_invdyn
 
     def _get_jacobian(self, dynsim, body_name):
+        """ Acquire Jacobian from joint space to input body pose """
         J = np.zeros([6, self.n_joints])
 
         Jp = dynsim.data.get_body_jacp(body_name)
@@ -190,17 +180,13 @@ class ArmImpController:
         return J
 
     def _get_qM(self, dynsim, J):
-        """
-        Joint mass matrix for current pose
-        """
+        """ Joint mass matrix for current pose """
         qM = np.zeros(self.n_joints * self.n_joints + 100)
         mj_functions.mj_fullM(dynsim.model, qM, dynsim.data.qM)
         return qM[0:49].reshape(self.n_joints, self.n_joints)
 
 def vec_softclip(a, a_max, leak=0.1):
-    """
-    Clip length of vector with a soft constraint (inverted ELU)
-    """
+    """ Clip length of vector with a soft constraint (inverted ELU) """
     a_len = np.linalg.norm(a)
 
     if a_len > a_max:

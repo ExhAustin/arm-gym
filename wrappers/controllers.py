@@ -10,7 +10,7 @@ from mujoco_py import functions as mj_functions
 from arm_gym.wrappers.utils import ArmImpController, GripperPDController
 from arm_gym.utils import rotations
 
-class Controller():
+class Controller(object):
     def __init__(self, env):
         self.env = env
 
