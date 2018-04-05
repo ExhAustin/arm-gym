@@ -69,13 +69,17 @@ class SawyerImpController(Controller):
         # Initialize rest by reset
         self.reset()
 
-    def reset(self):
+    def reset(self, state0=None):
+        # Assign new reset state
+        if state0 is not None:
+            self.state0 = state0
+            
         # Env
         self.env.reset()
         self.load_state(self.state0)
 
-        # Time
-        self.t = 0
+        # Sync time
+        self.t = self.env.sim.data.time
 
         # Controller modules
         self.arm_controller.reset()
