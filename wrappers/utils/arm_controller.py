@@ -74,7 +74,7 @@ class ArmImpController:
 
     def _position_controller(self, dynsim, x_e, ddx_d):
         """ Position controller """
-        """
+        #"""
         # Compute Jacobian
         J = self._get_jacobian(dynsim, self.end_effector_name)
 
@@ -131,7 +131,7 @@ class ArmImpController:
         # Update memory
         self.x_e_prev = x_e
         self.theta_e_null_prev = theta_e_null
-        #"""
+        """
 
 
         return tau
