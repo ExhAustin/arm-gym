@@ -4,10 +4,10 @@ import shutil
 import numpy as np
 from pyquaternion import Quaternion
 
-#from mujoco_py import load_model_from_path, MjSim
-#from mujoco_py import functions as mjlib
-from dm_control import mujoco
-from dm_control.mujoco.wrapper.mjbindings import mjlib
+from mujoco_py import load_model_from_path, MjSim
+from mujoco_py import functions as mjlib
+#from dm_control import mujoco
+#from dm_control.mujoco.wrapper.mjbindings import mjlib
 
 from arm_gym.wrappers.utils import ArmImpController, GripperPDController
 from arm_gym.utils import rotations

@@ -1,8 +1,8 @@
 import numpy as np
 from pyquaternion import Quaternion
 
-#from mujoco_py import functions as mjlib
-from dm_control.mujoco.wrapper.mjbindings import mjlib
+from mujoco_py import functions as mjlib
+#from dm_control.mujoco.wrapper.mjbindings import mjlib
 
 from arm_gym.utils import rotations
 

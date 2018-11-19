@@ -15,9 +15,9 @@ def make(arm_name=None, task_name=None, filename="merged_tmp",
         return env
 
     print("Generating XML model file...")
-    print("\tArm:", arm_name)
-    print("\tTask:", task_name)
-    print("\tTask env shift:", str(p_shift), ",", str(r_shift))
+    print("\tArm: {}".format(arm_name))
+    print("\tTask: {}".format(task_name))
+    print("\tTask env shift: {}, {}".format(p_shift, r_shift))
 
     # Define and locate files directories
     curr_dir = os.path.dirname(__file__) + "/"
@@ -53,7 +53,7 @@ def make(arm_name=None, task_name=None, filename="merged_tmp",
     armtask_lines = merge_xmls(arm_lines, task_lines)
     list2file(armtask_lines, out_file)
 
-    print("XML model file created:", out_file)
+    print("XML model file created:".format(out_file))
 
     # Create arm environment from xml file
     print("Creating env object...")
