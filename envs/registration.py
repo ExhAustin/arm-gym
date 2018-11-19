@@ -2,8 +2,6 @@ import os
 
 import numpy as np
 
-from mujoco_py import load_model_from_path, MjSim, MjViewer
-
 from arm_gym.utils.xml_tools import file2list, list2file, shift_body, merge_xmls
 from arm_gym.envs.arm_task_env import ArmTaskEnv
 

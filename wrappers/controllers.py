@@ -4,8 +4,10 @@ import shutil
 import numpy as np
 from pyquaternion import Quaternion
 
-from mujoco_py import load_model_from_path, MjSim
-from mujoco_py import functions as mj_functions
+#from mujoco_py import load_model_from_path, MjSim
+#from mujoco_py import functions as mjlib
+from dm_control import mujoco
+from dm_control.mujoco.wrapper.mjbindings import mjlib
 
 from arm_gym.wrappers.utils import ArmImpController, GripperPDController
 from arm_gym.utils import rotations
@@ -47,8 +49,9 @@ class SawyerImpController(Controller):
         arm_file = curr_dir + "../envs/xmls/arms/"\
                 + arm_name + ".xml"
 
-        self.mj_dynmodel = load_model_from_path(arm_file)
-        self.dynsim = MjSim(self.mj_dynmodel)
+        #self.mj_dynmodel = load_model_from_path(arm_file)
+        #self.dynsim = MjSim(self.mj_dynmodel)
+        self.dynsim = mujoco.Physics.from_xml_path(arm_file)
 
         # Controller modules
         self.arm_controller = ArmImpController(
@@ -151,11 +154,11 @@ class SawyerImpController(Controller):
             (Accesses set_state through env.sim)
         """
         self.env.sim.set_state(state)
-        mj_functions.mj_fwdPosition(self.env.sim.model, self.env.sim.data)
-        mj_functions.mj_fwdVelocity(self.env.sim.model, self.env.sim.data)
-        mj_functions.mj_fwdAcceleration(self.env.sim.model, self.env.sim.data)
-        mj_functions.mj_fwdActuation(self.env.sim.model, self.env.sim.data)
-        mj_functions.mj_fwdConstraint(self.env.sim.model, self.env.sim.data)
+        mjlib.mj_fwdPosition(self.env.sim.model, self.env.sim.data)
+        mjlib.mj_fwdVelocity(self.env.sim.model, self.env.sim.data)
+        mjlib.mj_fwdAcceleration(self.env.sim.model, self.env.sim.data)
+        mjlib.mj_fwdActuation(self.env.sim.model, self.env.sim.data)
+        mjlib.mj_fwdConstraint(self.env.sim.model, self.env.sim.data)
         self._sync_dynmodel()
 
     def save_xml(self, filename):
@@ -235,5 +238,5 @@ class SawyerImpController(Controller):
         self.dynsim.data.qpos[0:7] = self.env.sim.data.qpos[0:7].copy()
         self.dynsim.data.qvel[0:7] = self.env.sim.data.qvel[0:7].copy()
         self.dynsim.data.qacc[0:7] = self.env.sim.data.qacc[0:7].copy()
-        mj_functions.mj_fwdPosition(self.dynsim.model, self.dynsim.data)
+        mjlib.mj_fwdPosition(self.dynsim.model, self.dynsim.data)
 

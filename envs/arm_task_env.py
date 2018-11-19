@@ -1,6 +1,7 @@
 import numpy as np
 
-from mujoco_py import load_model_from_path, MjSim, MjViewer
+#from mujoco_py import load_model_from_path, MjSim, MjViewer
+from dm_control import mujoco
 
 class ArmTaskEnv:
     """
@@ -12,8 +13,9 @@ class ArmTaskEnv:
     def __init__(self, model_file):
         # Load model to MuJoCo
         self.model_file = model_file
-        self.mj_model = load_model_from_path(model_file)
-        self.sim = MjSim(self.mj_model)
+        #self.mj_model = load_model_from_path(model_file)
+        #self.sim = MjSim(self.mj_model)
+        self.sim = mujoco.Physics.from_xml_path(model_file)
 
         # Parse state and action spaces
         self.state_dim = len(self.sim.data.sensordata)
@@ -38,9 +40,10 @@ class ArmTaskEnv:
         return next_state
 
     def render(self):
-        if self.viewer is None:
-            self.viewer = MjViewer(self.sim)
-        self.viewer.render()
+        #if self.viewer is None:
+        #    self.viewer = MjViewer(self.sim)
+        #self.viewer.render()
+        pass
 
     @property
     def time(self):
