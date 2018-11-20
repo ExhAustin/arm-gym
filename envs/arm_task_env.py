@@ -40,10 +40,9 @@ class ArmTaskEnv:
         return next_state
 
     def render(self):
-        #if self.viewer is None:
-        #    self.viewer = MjViewer(self.sim)
-        #self.viewer.render()
-        pass
+        if self.viewer is None:
+            self.viewer = MjViewer(self.sim)
+        self.viewer.render()
 
     @property
     def time(self):

@@ -49,9 +49,9 @@ class SawyerImpController(Controller):
         arm_file = curr_dir + "../envs/xmls/arms/"\
                 + arm_name + ".xml"
 
-        #self.mj_dynmodel = load_model_from_path(arm_file)
-        #self.dynsim = MjSim(self.mj_dynmodel)
-        self.dynsim = mujoco.Physics.from_xml_path(arm_file)
+        self.mj_dynmodel = load_model_from_path(arm_file)
+        self.dynsim = MjSim(self.mj_dynmodel)
+        #self.dynsim = mujoco.Physics.from_xml_path(arm_file)
 
         # Controller modules
         self.arm_controller = ArmImpController(
