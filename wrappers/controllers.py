@@ -79,7 +79,7 @@ class SawyerImpController(Controller):
             
         # Env
         self.env.reset()
-        self.load_state(self.state0)
+        self.set_state(self.state0)
 
         # Sync time
         self.t = self.env.sim.data.time
@@ -99,6 +99,7 @@ class SawyerImpController(Controller):
         # Take a step to get derivative states
         self.observation = self._simulation_step()
         self.trace['observations'].append(self.observation)
+
         return self.observation
 
     def step(self, action=None):
@@ -141,14 +142,14 @@ class SawyerImpController(Controller):
         self.rendering = True
         self.env.render()
 
-    def save_state(self):
+    def get_state(self):
         """
         Saves env state
             (Accesses get_state through env.sim)
         """
         return self.env.sim.get_state()
 
-    def load_state(self, state):
+    def set_state(self, state):
         """
         Loads env state
             (Accesses set_state through env.sim)
